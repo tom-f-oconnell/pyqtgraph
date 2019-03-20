@@ -2044,7 +2044,8 @@ class PolyLineROI(ROI):
         p.lineTo(self.handles[0]['item'].pos())
         return p
 
-    def getArrayRegion(self, data, img, axes=(0,1), **kwds):
+    def getArrayRegion(self, data, img, axes=(0,1), returnMappedCoords=False,
+        **kwds):
         """
         Return the result of ROI.getArrayRegion(), masked by the shape of the 
         ROI. Values outside the ROI shape are set to 0.
@@ -2066,7 +2067,13 @@ class PolyLineROI(ROI):
         shape[axes[1]] = sliced.shape[axes[1]]
         mask = mask.reshape(shape)
 
-        return sliced * mask
+        if returnMappedCoords:
+            # Hack to fix ImageView issue w/o having to worry as much if other
+            # things are affected.
+            # See PR 618 for an attempt at a more complete fix.
+            return sliced * mask, None
+        else:
+            return sliced * mask
 
     def setPen(self, *args, **kwds):
         ROI.setPen(self, *args, **kwds)
